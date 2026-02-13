@@ -1,0 +1,8 @@
+# Ejecutables y binarios
+bin/
+*.o
+*.out
+
+# IDEs
+.vscode/
+.DS_Store
