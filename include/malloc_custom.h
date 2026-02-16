@@ -21,5 +21,6 @@ struct Block {
 // funciones (por ahora)
 void* my_malloc(size_t size);
 void my_free(void* ptr);
+void debug_heap();
 
 #endif

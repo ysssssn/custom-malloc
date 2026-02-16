@@ -1,7 +1,24 @@
 #include "../include/malloc_custom.h"
+#include <iostream>
 
 // puntero global al inicio de la lista de bloques
 void* global_base = NULL;
+
+// dividir bloque si tiene suficiente espacio sobrante
+void split_block(struct Block* b, size_t size) {
+    // calculo donde empieza el nuevo bloque (después del bloque actual + su tamaño)
+    struct Block* new_block = (struct Block*)((char*)b + BLOCK_SIZE + size);
+
+    // nuevo bloque heredar el tamaño sobrante
+    new_block->size = b->size - size - BLOCK_SIZE;
+    new_block->next = b->next;
+    new_block->free = true;
+
+    // ajustamos el bloque original
+    b->size = size;
+    b->next = new_block;
+}
+
 
 // busca el primero bloque libre que pueda acomodar el tamaño solicitado
 struct Block* find_free_block(struct Block** last, size_t size) {
@@ -32,26 +49,30 @@ struct Block* request_space(struct Block* last, size_t size) {
 void* my_malloc(size_t size) {
     if (size <= 0) return NULL;
 
-    size = ALIGN(size); // aseguramos que el tamaño esté alineado a 8 bytes
+    size = ALIGN(size); 
 
     struct Block* block;
 
-    if (!global_base) { // primera llamada, no hay bloques aún
+    if (!global_base) { 
         block = request_space(NULL, size);
         if (!block) return NULL;
         global_base = block;
     } else {
         struct Block* last = (struct Block*)global_base;
         block = find_free_block(&last, size);
-        if (!block) { // no hay bloque libre suficiente, solicitamos más espacio
+        
+        if (!block) { 
             block = request_space(last, size);
             if (!block) return NULL;
-        } else {      // encontramos un bloque libre adecuado
+        } else {      
+            // splitting implementacion
+            // solo dividimos si sobra espacio suficiente para otra cabecera + mínimo de datos
+            if ((block->size - size) >= (BLOCK_SIZE + 8)) {
+                split_block(block, size);
+            }
             block->free = false;
         }
     }
-
-    // return el puntero al espacio útil para el usuario (después de los metadatos)
     return (void*)(block + 1);
 }
 
@@ -62,4 +83,22 @@ void my_free(void* ptr) {
     // obtenemos el bloque correspondiente a este puntero (restando el tamaño de la cabecera)
     struct Block* block_ptr = (struct Block*)ptr - 1;
     block_ptr->free = true;
+}
+
+
+// para comprobar que todo va
+void debug_heap() {
+    extern void* global_base; // Accedemos al puntero global
+    struct Block* actual = (struct Block*)global_base;
+    std::cout << "\n--- ESTADO ACTUAL DEL HEAP ---" << std::endl;
+    if (!actual) std::cout << "(Heap vacío)" << std::endl;
+    
+    while (actual) {
+        std::cout << "[ Bloque en: " << actual 
+                  << " | Tamaño: " << actual->size 
+                  << " | Libre: " << (actual->free ? "SÍ" : "NO") 
+                  << " | Siguiente: " << actual->next << " ]" << std::endl;
+        actual = actual->next;
+    }
+    std::cout << "------------------------------\n" << std::endl;
 }
