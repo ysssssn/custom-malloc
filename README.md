@@ -1,19 +1,22 @@
-# Custom Malloc
+# custom-malloc
 
-Un gestor de memoria personalizado implementado en C++ que emula el comportamiento de `malloc()` y `free()` usando `sbrk()`.
+Implementación personalizada de un allocator de memoria dinámica en C++ que simula el comportamiento de `malloc` y `free`.
 
 ## Características
 
-- Asignación dinámica de memoria personalizada
-- Liberación de memoria con reutilización de bloques
-- Metadatos para cada bloque (tamaño, estado, encadenamiento)
-- Búsqueda de bloques libres disponibles
+- **Asignación de memoria dinámica**: Solicita memoria al sistema operativo mediante `sbrk`.
+- **Alineación de 8 bytes**: Garantiza que los datos estén correctamente alineados.
+- **Splitting**: Divide bloques grandes en bloques más pequeños para optimizar el uso de memoria.
+- **Coalescing**: Fusiona bloques libres contiguos para evitar fragmentación.
+- **Gestión de metadatos**: Cada bloque incluye información sobre su tamaño y estado.
 
 ## Compilación
 
 ```bash
 make
 ```
+
+Genera el ejecutable en `bin/demo`.
 
 ## Ejecución
 
@@ -26,12 +29,6 @@ make
 ```bash
 make clean
 ```
-
-## Estructura del Proyecto
-
-- `src/` - Código fuente
-- `include/` - Archivos de cabecera
-- `Makefile` - Configuración de compilación
 
 ## Licencia
 
