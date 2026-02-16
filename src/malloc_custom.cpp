@@ -32,6 +32,8 @@ struct Block* request_space(struct Block* last, size_t size) {
 void* my_malloc(size_t size) {
     if (size <= 0) return NULL;
 
+    size = ALIGN(size); // aseguramos que el tamaño esté alineado a 8 bytes
+
     struct Block* block;
 
     if (!global_base) { // primera llamada, no hay bloques aún
